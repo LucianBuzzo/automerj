@@ -1,8 +1,14 @@
+![automerj](https://raw.githubusercontent.com/balena-io/landr/master/logo.png?v=2)
+
 # automerj
 
 > A GitHub App built with [Probot](https://github.com/probot/probot) that Auto-merge your PRs once all required status checks pass
 
-## Setup
+## Usage
+
+After installing the app in your repository, any approved pull request that passes all checks will be merged automatically.
+
+## Installation
 
 ```sh
 # Install dependencies
