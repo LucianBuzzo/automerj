@@ -30,4 +30,3 @@ For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
 [ISC](LICENSE) © 2020 Lucian Buzzo <lucian.buzzo@gmail.com>
 
-
