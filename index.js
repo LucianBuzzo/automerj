@@ -13,14 +13,14 @@ const run = async (app, context, commit, owner, repo) => {
   const prot = await context.github.repos.getBranchProtection({
     owner,
     repo,
-    branch: "master",
+    branch: 'master',
     headers: {
       // Custom header gives us access to developer preview data that shows
       // the number of required PR review approvals.
       // See https://developer.github.com/v3/repos/branches/#get-branch-protection
       accept: 'application/vnd.github.luke-cage-preview+json'
     }
-  });
+  })
 
   // 2. Check that all required status checks are passing
   const requiredContexts = prot.data.required_status_checks.contexts
@@ -28,8 +28,8 @@ const run = async (app, context, commit, owner, repo) => {
   const statuses = await context.github.repos.getCombinedStatusForRef({
     owner,
     repo,
-    ref: commit,
-  });
+    ref: commit
+  })
 
   const allChecksPass = _.every(requiredContexts, (context) => {
     const check = _.find(statuses.data.statuses, { context })
@@ -48,8 +48,8 @@ const run = async (app, context, commit, owner, repo) => {
   const pulls = await context.github.repos.listPullRequestsAssociatedWithCommit({
     owner,
     repo,
-    commit_sha: commit,
-  });
+    commit_sha: commit
+  })
 
   // TODO: What happens if there are multiple pulls?
   // sanity check
@@ -62,8 +62,8 @@ const run = async (app, context, commit, owner, repo) => {
   const pull = await context.github.pulls.get({
     owner,
     repo,
-    pull_number: pulls.data[0].number,
-  });
+    pull_number: pulls.data[0].number
+  })
 
   if (!(pull.data.mergeable && pull.data.mergeable_state === 'clean')) {
     log('PR is not in a mergeable state')
@@ -86,14 +86,14 @@ const run = async (app, context, commit, owner, repo) => {
     const reviews = await context.github.pulls.listReviews({
       owner,
       repo,
-      pull_number: pull.data.number,
+      pull_number: pull.data.number
     })
 
     const numApproved = _.filter(reviews.data, { state: 'APPROVED' }).length
 
     // Verify that the number of approvals is met
     if (numApproved < numberOfApprovalsRequired) {
-      log(`Not enough approvals to merge PR (${numApproved}/${numberOfAppovalsRequired})`)
+      log(`Not enough approvals to merge PR (${numApproved}/${numberOfApprovalsRequired})`)
       return
     }
   } else {
@@ -102,10 +102,10 @@ const run = async (app, context, commit, owner, repo) => {
 
   // 5. If all checks pass, merge the PR
   log('All checks pass, merging now')
-  const mergeResult = await context.github.pulls.merge({
+  await context.github.pulls.merge({
     owner,
     repo,
-    pull_number: pull.data.number,
+    pull_number: pull.data.number
   })
 }
 
@@ -120,9 +120,9 @@ module.exports = app => {
       return
     }
 
-    const [ owner, repo ] = context.payload.repository.full_name.split('/')
+    const [owner, repo] = context.payload.repository.full_name.split('/')
     const commit = context.payload.review.commit_id
-    await run (app, context, commit, owner, repo)
+    await run(app, context, commit, owner, repo)
   })
 
   app.on('status', async context => {
@@ -131,20 +131,19 @@ module.exports = app => {
       return
     }
 
+    const commit = context.payload.sha
+
     // Check for matching branches where the head commit is the same
     const branches = context.payload.branches.filter(branch => {
-      return branch.commit.sha = commit
+      return branch.commit.sha === commit
     })
 
     if (branches.length === 0) {
       return
     }
 
-    const [ owner, repo ] = context.payload.name.split('/')
+    const [owner, repo] = context.payload.name.split('/')
 
-    const commit = context.payload.sha
-
-
-    await run (app, context, commit, owner, repo)
+    await run(app, context, commit, owner, repo)
   })
 }
