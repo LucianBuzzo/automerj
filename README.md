@@ -2,6 +2,8 @@
 
 # automerj
 
+[![CI](https://github.com/LucianBuzzo/automerj/actions/workflows/ci.yml/badge.svg)](https://github.com/LucianBuzzo/automerj/actions/workflows/ci.yml)
+
 > A GitHub App built with [Probot](https://github.com/probot/probot) that Auto-merge your PRs once all required status checks pass
 
 Usage
