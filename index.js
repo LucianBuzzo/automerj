@@ -33,7 +33,7 @@ const run = async (app, context, commit, owner, repo) => {
 
   const allChecksPass = _.every(requiredContexts, (context) => {
     const check = _.find(statuses.data.statuses, { context })
-    return check.state === 'success'
+    return check && check.state === 'success'
   })
 
   log(`All checks pass: ${allChecksPass}`)
@@ -113,7 +113,7 @@ const run = async (app, context, commit, owner, repo) => {
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
  */
-module.exports = app => {
+const appHandler = app => {
   app.on('pull_request_review.submitted', async context => {
     // Only continue if the review state is "approved"
     if (context.payload.review.state !== 'approved') {
@@ -147,3 +147,6 @@ module.exports = app => {
     await run(app, context, commit, owner, repo)
   })
 }
+
+module.exports = appHandler
+module.exports.run = run
