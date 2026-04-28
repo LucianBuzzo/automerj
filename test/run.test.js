@@ -34,4 +34,42 @@ describe('run', () => {
     expect(context.github.repos.listPullRequestsAssociatedWithCommit).not.toHaveBeenCalled()
     expect(context.github.pulls.merge).not.toHaveBeenCalled()
   })
+
+  test('does not merge when no pull requests are associated with the commit', async () => {
+    const app = { log: jest.fn() }
+    const context = {
+      github: {
+        repos: {
+          getBranchProtection: jest.fn().mockResolvedValue({
+            data: {
+              required_status_checks: {
+                contexts: ['ci/test']
+              },
+              required_pull_request_reviews: null
+            }
+          }),
+          getCombinedStatusForRef: jest.fn().mockResolvedValue({
+            data: {
+              statuses: [
+                { context: 'ci/test', state: 'success' }
+              ]
+            }
+          }),
+          listPullRequestsAssociatedWithCommit: jest.fn().mockResolvedValue({
+            data: []
+          })
+        },
+        pulls: {
+          get: jest.fn(),
+          merge: jest.fn()
+        }
+      }
+    }
+
+    await expect(run(app, context, 'abc123', 'owner', 'repo')).resolves.toBeUndefined()
+
+    expect(context.github.pulls.get).not.toHaveBeenCalled()
+    expect(context.github.pulls.merge).not.toHaveBeenCalled()
+    expect(app.log).toHaveBeenCalledWith('[owner/repo#abc123]: No open pull request associated with commit, cannot continue')
+  })
 })

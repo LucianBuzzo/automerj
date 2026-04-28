@@ -52,8 +52,14 @@ const run = async (app, context, commit, owner, repo) => {
   })
 
   // TODO: What happens if there are multiple pulls?
+  const matchingPull = pulls.data[0]
+  if (!matchingPull) {
+    log('No open pull request associated with commit, cannot continue')
+    return
+  }
+
   // sanity check
-  if (pulls.data[0].state !== 'open') {
+  if (matchingPull.state !== 'open') {
     log('PR is not open, cannot continue')
     return
   }
@@ -62,7 +68,7 @@ const run = async (app, context, commit, owner, repo) => {
   const pull = await context.github.pulls.get({
     owner,
     repo,
-    pull_number: pulls.data[0].number
+    pull_number: matchingPull.number
   })
 
   if (!(pull.data.mergeable && pull.data.mergeable_state === 'clean')) {
